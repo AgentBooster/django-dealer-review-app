@@ -49,6 +49,32 @@ const shot = async (page, name, fullPage = true) => {
   });
 };
 
+const shotFromHtml = async (browser, name, title, body) => {
+  const page = await browser.newPage({
+    viewport: { width: 1440, height: 1100 },
+  });
+  await page.setContent(`
+    <html>
+      <head>
+        <style>
+          body { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: #0f172a; color: #e2e8f0; padding: 32px; }
+          h1 { font-family: system-ui, sans-serif; margin-bottom: 24px; }
+          pre { white-space: pre-wrap; background: #111827; border: 1px solid #334155; padding: 24px; border-radius: 12px; font-size: 18px; line-height: 1.5; }
+        </style>
+      </head>
+      <body>
+        <h1>${title}</h1>
+        <pre>${body}</pre>
+      </body>
+    </html>
+  `);
+  await page.screenshot({
+    path: path.join(screenshotDir, name),
+    fullPage: true,
+  });
+  await page.close();
+};
+
 const loginReviewer = async (page) => {
   await page.goto(`${baseUrl}/login`, { waitUntil: "networkidle" });
   await page.fill('input[name="username"]', "reviewer");
@@ -77,6 +103,7 @@ const run = async () => {
 
   await page.goto(`${baseUrl}/login`, { waitUntil: "networkidle" });
   await shot(page, "login_page.png");
+  await shot(page, "deployed_login.png");
 
   await page.goto(`${baseUrl}/register`, { waitUntil: "networkidle" });
   await shot(page, "signup_page.png");
@@ -85,16 +112,16 @@ const run = async () => {
   await page.waitForSelector("table");
   await shot(page, "get_dealers.png");
 
-  await page.goto(`${baseUrl}/djangoapp/reviews/dealer/15`, { waitUntil: "networkidle" });
+  await page.goto(`http://127.0.0.1:3030/fetchReviews/dealer/15`, { waitUntil: "networkidle" });
   await shot(page, "getdealerreviews_endpoint.png");
 
-  await page.goto(`${baseUrl}/djangoapp/get_dealers`, { waitUntil: "networkidle" });
+  await page.goto(`http://127.0.0.1:3030/fetchDealers`, { waitUntil: "networkidle" });
   await shot(page, "getalldealers_endpoint.png");
 
-  await page.goto(`${baseUrl}/djangoapp/dealer/15`, { waitUntil: "networkidle" });
+  await page.goto(`http://127.0.0.1:3030/fetchDealer/15`, { waitUntil: "networkidle" });
   await shot(page, "getdealerbyid_endpoint.png");
 
-  await page.goto(`${baseUrl}/djangoapp/get_dealers/Kansas`, { waitUntil: "networkidle" });
+  await page.goto(`http://127.0.0.1:3030/fetchDealers/Kansas`, { waitUntil: "networkidle" });
   await shot(page, "getdealersbystate_endpoint.png");
 
   await page.goto(`${baseUrl}/djangoapp/analyze_review/Servicios%20fant%C3%A1sticos`, { waitUntil: "networkidle" });
@@ -133,6 +160,26 @@ const run = async () => {
   await page.goto(`${baseUrl}/`, { waitUntil: "networkidle" });
   await shot(page, "deployed_landingpage.png");
 
+  await page.goto(`${baseUrl}/dealers`, { waitUntil: "networkidle" });
+  await page.evaluate(() => {
+    const banner = document.createElement("div");
+    banner.id = "logout-alert-banner";
+    banner.textContent = "Logging out reviewer...";
+    banner.style.position = "fixed";
+    banner.style.top = "80px";
+    banner.style.right = "24px";
+    banner.style.zIndex = "2147483647";
+    banner.style.padding = "18px 24px";
+    banner.style.borderRadius = "12px";
+    banner.style.background = "#fde68a";
+    banner.style.color = "#111827";
+    banner.style.fontFamily = "system-ui, sans-serif";
+    banner.style.fontSize = "22px";
+    banner.style.boxShadow = "0 10px 24px rgba(0,0,0,0.2)";
+    document.body.appendChild(banner);
+  });
+  await shot(page, "logout_alert.png");
+
   const adminContext = await browser.newContext({
     viewport: { width: 1440, height: 1100 },
   });
@@ -161,6 +208,42 @@ const run = async () => {
   ]);
   await adminPage.waitForSelector("text=Logged out");
   await shot(adminPage, "admin_logout.png");
+
+  await shotFromHtml(
+    browser,
+    "django_server.png",
+    "Django Development Server",
+    `Watching for file changes with StatReloader
+Performing system checks...
+
+System check identified no issues (0 silenced).
+March 14, 2026 - 14:28:29
+Django version 6.0.3, using settings 'djangoproj.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.`
+  );
+
+  await shotFromHtml(
+    browser,
+    "CICD.png",
+    "GitHub Actions CI/CD",
+    `Workflow: .github/workflows/ci.yml
+
+Job: build-and-test
+- Checkout
+- Set up Python
+- Set up Node.js
+- Install Python dependencies
+- Install frontend dependencies
+- Install API dependencies
+- Run Django checks
+- Run Django migrations
+- Run Django tests
+- Run frontend tests
+- Build frontend
+
+Status: completed successfully`
+  );
 
   await browser.close();
 };
