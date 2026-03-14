@@ -1,0 +1,22 @@
+GitHub Actions workflow file:
+.github/workflows/ci.yml
+
+Local validation completed successfully with the same steps used in CI:
+
+1. Install Python dependencies
+2. Install frontend dependencies
+3. Install API dependencies
+4. Run Django checks
+5. Run Django migrations
+6. Run Django tests
+7. Run frontend tests
+8. Build frontend
+
+Local results:
+- `python manage.py check` -> passed
+- `python manage.py migrate` -> passed
+- `python manage.py test` -> passed
+- `CI=true npm test -- --watchAll=false --passWithNoTests` -> passed
+- `npm run build` -> passed
+
+After pushing this repository to GitHub, the workflow will execute automatically on `main`.

@@ -1,0 +1,13 @@
+$ curl -i http://127.0.0.1:8000/djangoapp/analyze_review/Servicios%20fant%C3%A1sticos
+
+HTTP/1.1 200 OK
+Date: Sat, 14 Mar 2026 14:51:24 GMT
+Server: WSGIServer/0.2 CPython/3.14.2
+Content-Type: application/json
+X-Frame-Options: DENY
+Content-Length: 80
+X-Content-Type-Options: nosniff
+Referrer-Policy: same-origin
+Cross-Origin-Opener-Policy: same-origin
+
+{"status": 200, "review": "Servicios fant\u00e1sticos", "sentiment": "positive"}
